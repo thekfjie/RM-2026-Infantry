@@ -65,6 +65,18 @@ typedef __packed struct
 	uint16_t checksum;
 }Vision_Rx_Data_t;
 
+// 0xA6: already predicted BUFF aim, independent of armor extrapolation.
+typedef __packed struct
+{
+    uint8_t header;
+    uint8_t valid;
+    float yaw;
+    float pitch;
+    float horizon;
+    float reserved[8];
+    uint16_t checksum;
+} Buff_Rx_Data_t;
+
 typedef struct
 {
 	fp32 t0;
@@ -89,6 +101,7 @@ typedef struct
 	uint8_t aimbot_auto_fire_state;
 	
 	Vision_Rx_Data_t Vision_Rx_Data;
+	Buff_Rx_Data_t Buff_Rx_Data;
 	Vision_Tx_Data_t Vision_Tx_Data;
 	
 	aimbot_count_t	aimbot_count;		//算出来的飞行时间

@@ -727,6 +727,7 @@ void gimbal_ins_yaw_control(gimbal_control_t *gimbal_ins)
 static uint16_t gimbal_aimbot_delay;
 void aimbot_gimbal_control(gimbal_control_t *aimbot_gimbal_control_point)
 {
+	fp32 yaw_error;
 	if(aimbot_gimbal_control_point->aimbot_mode == AIMBOT_ON)
 	{
 		gimbal_aimbot_delay++;
@@ -743,11 +744,14 @@ void aimbot_gimbal_control(gimbal_control_t *aimbot_gimbal_control_point)
 			aimbot_gimbal_control_point->gimbal_pitch_motor.current_set = PID_calc(&aimbot_gimbal_control_point->aimbot_speed_pitch_pid, aimbot_gimbal_control_point->gimbal_pitch_motor.motor_gyro, 
 																			aimbot_gimbal_control_point->gimbal_pitch_motor.motor_gyro_set);
 			//yaw
-			if(fabs(aimbot_gimbal_control_point->gimbal_aimbot_point->target_yaw-aimbot_gimbal_control_point->gimbal_INT_angle_point[YAW_CHANNEL])<PI/8.0f)
-				aimbot_gimbal_control_point->gimbal_yaw_motor.absolute_angle_set = aimbot_gimbal_control_point->gimbal_aimbot_point->target_yaw;
+			yaw_error = loop_fp32_constrain(
+				aimbot_gimbal_control_point->gimbal_aimbot_point->target_yaw -
+				aimbot_gimbal_control_point->gimbal_INT_angle_point[YAW_CHANNEL], -PI, PI);
+			if(fabs(yaw_error)<PI/8.0f)
+				aimbot_gimbal_control_point->gimbal_yaw_motor.absolute_angle_set =
+					aimbot_gimbal_control_point->gimbal_INT_angle_point[YAW_CHANNEL] + yaw_error;
 			else
 				aimbot_gimbal_control_point->gimbal_yaw_motor.absolute_angle_set = aimbot_gimbal_control_point->gimbal_INT_angle_point[YAW_CHANNEL];
-			aimbot_gimbal_control_point->gimbal_yaw_motor.absolute_angle_set = loop_fp32_constrain(aimbot_gimbal_control_point->gimbal_yaw_motor.absolute_angle_set, -PI, PI);
 				
 			//PID¡ª¡ªyaw
 			aimbot_gimbal_control_point->gimbal_yaw_motor.motor_gyro_set = gimbal_PID_calc(&aimbot_gimbal_control_point->aimbot_angle_yaw_pid , aimbot_gimbal_control_point->gimbal_INT_angle_point[YAW_CHANNEL] - aimbot_gimbal_control_point->gimbal_yaw_motor.gimbal_motor_measure->speed_rpm*GIMBAL_SPIN_YAW_BUFFER, 
